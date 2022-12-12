@@ -44,6 +44,12 @@ Docker or Podman must be installed.
   }
   ```
 
+## Test 
+
+- start mongodb in docker `docker-compose up`
+- if server run stop it 
+- run `npm run test`
+
 ---
 
 ## Authors

@@ -5,7 +5,8 @@ const { getRandomInt } = require('../src/utils/helpers');
 describe('Test ShoppingList CRUD', () => {
   let token = null;
   let simpleUserId = null;
-  let shoppingListId = null;
+  let firstShoppingListId = null;
+  let lastShoppingListId = null;
   let secondSimpleUserId = null;
 
   describe('01 - Login as admin user', () => {
@@ -67,12 +68,13 @@ describe('Test ShoppingList CRUD', () => {
       expect(statusCode).not.toBe(404);
       expect(statusCode).not.toBe(500);
 
-      shoppingListId = body[body.length - 1]._id;
+      firstShoppingListId = body[0]._id;
+      lastShoppingListId = body[body.length - 1]._id;
     });
 
-    it('GET /api/shopping-list/:shoppingListId - success - get one shoppingList by ID', async () => {
+    it('GET /api/shopping-list/:lastS - success - get one shoppingList by ID', async () => {
       const { statusCode } = await request(app)
-        .get(`/api/shopping-list/${shoppingListId}`)
+        .get(`/api/shopping-list/${lastShoppingListId}`)
         .set('Authorization', `Bearer ${token}`);
 
       expect(statusCode).toBe(200);
@@ -85,7 +87,7 @@ describe('Test ShoppingList CRUD', () => {
 
     it('POST /api/shopping-list/:shoppingListId/add-user - success - added new user into shoppingList', async () => {
       const { statusCode } = await request(app)
-        .post(`/api/shopping-list/${shoppingListId}/add-user`)
+        .post(`/api/shopping-list/${lastShoppingListId}/add-user`)
         .set('Authorization', `Bearer ${token}`)
         .send({ userId: secondSimpleUserId });
 
@@ -100,7 +102,7 @@ describe('Test ShoppingList CRUD', () => {
 
     it('PATCH /api/shopping-list/:shoppingListId - success - update ShoppingLIst by ID', async () => {
       const { statusCode } = await request(app)
-        .patch(`/api/shopping-list/${shoppingListId}`)
+        .patch(`/api/shopping-list/${lastShoppingListId}`)
         .set('Authorization', `Bearer ${token}`)
         .send({ name: 'Updated' });
 
@@ -115,7 +117,7 @@ describe('Test ShoppingList CRUD', () => {
 
     it('DELETE /api/shopping-list/:shoppingListId/remove-user - success - remove User from shoppingList', async () => {
       const { statusCode } = await request(app)
-        .delete(`/api/shopping-list/${shoppingListId}/remove-user`)
+        .delete(`/api/shopping-list/${lastShoppingListId}/remove-user`)
         .set('Authorization', `Bearer ${token}`)
         .send({ allowedUserId: secondSimpleUserId });
 
@@ -129,7 +131,7 @@ describe('Test ShoppingList CRUD', () => {
 
     it('DELETE /api/shopping-list/:shoppingListId - success - delete shoppingList by ID Cascade', async () => {
       const { statusCode } = await request(app)
-        .delete(`/api/shopping-list/${shoppingListId}`)
+        .delete(`/api/shopping-list/${lastShoppingListId}`)
         .set('Authorization', `Bearer ${token}`);
 
       expect(statusCode).toBe(204);
@@ -142,7 +144,7 @@ describe('Test ShoppingList CRUD', () => {
 
     it('GET /api/shopping-list/:shoppingListId - success - get nothing because shoppingList is deleted', async () => {
       const { statusCode } = await request(app)
-        .get(`/api/shopping-list/${shoppingListId}`)
+        .get(`/api/shopping-list/${lastShoppingListId}`)
         .set('Authorization', `Bearer ${token}`);
 
       expect(statusCode).toBe(401);
@@ -171,17 +173,43 @@ describe('Test ShoppingList CRUD', () => {
     });
   });
 
-  describe('04 - Test simpleUser CRUD', () => {
+  describe('04 - Test shoppingList with simpleUser', () => {
     it('GET /api/shopping-lists - success - no authorized because only admin has access', async () => {
-      const { body, statusCode } = await request(app)
-        .get('/api/shopping-lists')
-        .set('Authorization', `Bearer ${token}`);
+      const { statusCode } = await request(app).get('/api/shopping-lists').set('Authorization', `Bearer ${token}`);
 
       expect(statusCode).toBe(401);
 
       expect(statusCode).not.toBe(200);
       expect(statusCode).not.toBe(400);
       expect(statusCode).not.toBe(404);
+      expect(statusCode).not.toBe(500);
+    });
+
+    it('GET /api/shopping-list/:shoppingListId - success - get admin shoppingList because simple user is allowed user there', async () => {
+      const { statusCode } = await request(app)
+        .get(`/api/shopping-list/${firstShoppingListId}`)
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(statusCode).toBe(200);
+
+      expect(statusCode).not.toBe(401);
+      expect(statusCode).not.toBe(400);
+      expect(statusCode).not.toBe(404);
+      expect(statusCode).not.toBe(500);
+    });
+
+    it('POST /api/shopping-list - success - new shopping list', async () => {
+      const { statusCode } = await request(app)
+        .post('/api/shopping-list')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: `test 1${getRandomInt(10000)}` });
+
+      expect(statusCode).toBe(201);
+
+      expect(statusCode).not.toBe(400);
+      expect(statusCode).not.toBe(401);
+      expect(statusCode).not.toBe(404);
+      expect(statusCode).not.toBe(409);
       expect(statusCode).not.toBe(500);
     });
   });

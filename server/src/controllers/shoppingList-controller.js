@@ -20,7 +20,8 @@ const createShoppingList = async (data, userId) => {
   if (!checkUser) throw new NotFoundError("User doesn't exists");
 
   const allowedUsers = await User.find({ _id: { $in: data.allowedUsers } }).lean();
-  if (allowedUsers.length === 0) throw new NotFoundError("Contributors doesn't exists");
+  if (data?.allowedUsers?.length > 0 && allowedUsers.length === 0)
+    throw new NotFoundError("Contributors doesn't exists");
 
   data.userId = userId;
 
