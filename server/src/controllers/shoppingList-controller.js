@@ -119,7 +119,7 @@ const updateShoppingList = async (shoppingListId, data) => {
   if (!checkShoppingList) throw new NotFoundError("Shopping list doesn't exists");
 
   const allowedUsers = await User.find({ _id: { $in: data.allowedUsers } }).lean();
-  if (allowedUsers.length === 0) throw new NotFoundError("Contributors doesn't exists");
+  if (data?.allowedUsers > 0 && allowedUsers.length === 0) throw new NotFoundError("Contributors doesn't exists");
 
   const filter = { _id: shoppingListId };
   const update = data;
